@@ -584,12 +584,22 @@
         let confirmationCallback = null;
         let recordIdToEdit = null;
 
-        // --- List of available EPIs (SORTED) ---
+        // --- NEW: List of available EPIs with predefined C.A. numbers ---
         const availableEpis = [
-            "Luva de Pano", "Luva PVC", "Máscara PFF2", "Avental",
-            "Óculos Escuro", "Óculos Transparente", "Balaclava", "Máscara de Filtro",
-            "Protetor Auricular", "Capacete", "Bota de Segurança", "Cinto de Segurança"
-        ].sort();
+            { name: "Avental PVC", ca: "28303" },
+            { name: "Balaclava", ca: "" },
+            { name: "Bota de Segurança", ca: "" },
+            { name: "Capacete", ca: "" },
+            { name: "Cinto de Segurança", ca: "" },
+            { name: "Luva de Pano (Seca)", ca: "32038" },
+            { name: "Luva Látex", ca: "16312" },
+            { name: "Luva PVC", ca: "36581" },
+            { name: "Máscara de Filtro", ca: "" },
+            { name: "Máscara PFF2", ca: "38944" },
+            { name: "Óculos Fumê", ca: "34653" },
+            { name: "Óculos Incolor", ca: "34653" },
+            { name: "Protetor Auricular", ca: "" }
+        ].sort((a, b) => a.name.localeCompare(b.name)); // Sort by name alphabetically
 
         // --- Utility Functions ---
         const showNotification = (message, type = 'success') => {
@@ -696,13 +706,13 @@
         const popularListaDeEPIs = () => {
             epiSelectionList.innerHTML = '';
             availableEpis.forEach(epi => {
-                const epiId = `epi-${epi.replace(/\s+/g, '-')}`;
+                const epiId = `epi-${epi.name.replace(/\s+/g, '-')}`;
                 const epiItem = document.createElement('div');
                 epiItem.classList.add('epi-item');
                 epiItem.innerHTML = `
                     <div class="form-group-checkbox">
-                        <input type="checkbox" id="${epiId}" name="epi-checkbox" value="${epi}">
-                        <label for="${epiId}">${epi}</label>
+                        <input type="checkbox" id="${epiId}" name="epi-checkbox" value="${epi.name}" data-ca="${epi.ca}">
+                        <label for="${epiId}">${epi.name}</label>
                     </div>
                     <div class="form-group-ca">
                         <input type="number" class="ca-input" placeholder="Nº do C.A." disabled>
@@ -729,6 +739,23 @@
                     if(modal === editModal) hideEditModal();
                 }
             });
+        });
+
+        // MODIFIED: Handle C.A. autofill
+        epiSelectionList.addEventListener('change', (e) => {
+            if (e.target.matches('input[name="epi-checkbox"]')) {
+                const epiItem = e.target.closest('.epi-item');
+                const caInput = epiItem.querySelector('.ca-input');
+                caInput.disabled = !e.target.checked;
+                epiItem.classList.toggle('selected', e.target.checked);
+                
+                if (e.target.checked) {
+                    caInput.value = e.target.dataset.ca; // Autofill C.A.
+                    caInput.focus();
+                } else {
+                    caInput.value = '';
+                }
+            }
         });
 
         // Add selected items to temporary list
