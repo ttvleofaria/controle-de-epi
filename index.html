@@ -139,7 +139,7 @@
             box-shadow: 0 0 0 3px var(--secondary-color);
         }
         
-        /* --- NEW: EPI Selection List Styles --- */
+        /* --- EPI Selection List Styles --- */
         #epi-selection-list {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -397,7 +397,7 @@
             </div>
         </div>
 
-        <!-- Step 2: Select EPIs (MODIFIED) -->
+        <!-- Step 2: Select EPIs -->
         <div class="card">
             <div class="card-header">
                 <i class="ph-check-square-offset-fill"></i>
@@ -446,7 +446,7 @@
                 </div>
                 <button type="button" id="exportar-csv" class="btn btn-primary">
                     <i class="ph-file-csv"></i>
-                    Exportar para CSV
+                    Exportar Relatório CSV
                 </button>
             </div>
             <div class="table-wrapper">
@@ -491,7 +491,7 @@
         const nomeFuncionarioInput = document.getElementById('nome-funcionario');
         const dataEntregaInput = document.getElementById('data-entrega');
         const addItemsForm = document.getElementById('add-items-form');
-        const epiSelectionList = document.getElementById('epi-selection-list'); // NEW
+        const epiSelectionList = document.getElementById('epi-selection-list');
         const listaEntregaTabelaBody = document.querySelector('#lista-entrega-tabela tbody');
         const btnSaveAll = document.getElementById('btn-save-all');
         const registrosTabelaBody = document.querySelector('#registros-tabela tbody');
@@ -510,12 +510,12 @@
         let registrosGerais = JSON.parse(localStorage.getItem('epiRegistros')) || [];
         let confirmationCallback = null;
 
-        // --- NEW: List of available EPIs ---
+        // --- List of available EPIs (SORTED) ---
         const availableEpis = [
             "Luva de Pano", "Luva PVC", "Máscara PFF2", "Avental",
             "Óculos Escuro", "Óculos Transparente", "Balaclava", "Máscara de Filtro",
             "Protetor Auricular", "Capacete", "Bota de Segurança", "Cinto de Segurança"
-        ];
+        ].sort(); // <-- MODIFIED: List is now sorted alphabetically
 
         // --- Utility Functions (Notifications and Modals) ---
         const showNotification = (message, type = 'success') => {
@@ -595,7 +595,7 @@
             });
         };
         
-        // --- NEW: Function to create the EPI selection list ---
+        // --- Function to create the EPI selection list ---
         const popularListaDeEPIs = () => {
             epiSelectionList.innerHTML = ''; // Clear previous items
             availableEpis.forEach(epi => {
@@ -617,7 +617,7 @@
 
         // --- Event Logic ---
 
-        // NEW: Enable/disable C.A. input when checkbox is toggled
+        // Enable/disable C.A. input when checkbox is toggled
         epiSelectionList.addEventListener('change', (e) => {
             if (e.target.matches('input[name="epi-checkbox"]')) {
                 const epiItem = e.target.closest('.epi-item');
@@ -633,7 +633,7 @@
             }
         });
 
-        // MODIFIED: Add selected items to temporary list
+        // Add selected items to temporary list
         addItemsForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const selectedCheckboxes = epiSelectionList.querySelectorAll('input[name="epi-checkbox"]:checked');
@@ -729,35 +729,60 @@
             }
         });
 
-        // Export History to CSV
+        // --- MODIFIED: Export History to a more organized CSV Report ---
         exportarBtn.addEventListener('click', () => {
              if (registrosGerais.length === 0) {
                 showNotification('Não há registros para exportar.', 'error');
                 return;
             }
-            const headers = ['Nome do Funcionario', 'Nome do EPI', 'Numero do C.A.', 'Data da Entrega'];
-            let csvContent = "data:text/csv;charset=utf-8," + headers.join(',') + '\n';
-            const registrosOrdenados = [...registrosGerais].sort((a, b) => new Date(b.data) - new Date(a.data));
-            registrosOrdenados.forEach(registro => {
-                const dataFormatada = new Date(registro.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-                const linha = [`"${registro.funcionario}"`, `"${registro.epi}"`, `"${registro.ca}"`, `"${dataFormatada}"`].join(',');
-                csvContent += linha + '\n';
+
+            const dataGeracao = new Date().toLocaleDateString('pt-BR');
+            let csvContent = `"Relatório de Entrega de EPIs"\n`;
+            csvContent += `"Gerado em: ${dataGeracao}"\n\n`;
+
+            // Group records by employee
+            const groupedByFuncionario = registrosGerais.reduce((acc, registro) => {
+                const funcionario = registro.funcionario;
+                if (!acc[funcionario]) {
+                    acc[funcionario] = [];
+                }
+                acc[funcionario].push(registro);
+                return acc;
+            }, {});
+
+            // Sort employees by name alphabetically
+            const funcionariosOrdenados = Object.keys(groupedByFuncionario).sort((a, b) => a.localeCompare(b));
+
+            funcionariosOrdenados.forEach(funcionario => {
+                csvContent += `"Funcionário: ${funcionario}"\n`;
+                csvContent += `"Data da Entrega","EPI","C.A."\n`;
+
+                // Sort records for the current employee by date (most recent first)
+                const registrosDoFuncionario = groupedByFuncionario[funcionario].sort((a, b) => new Date(b.data) - new Date(a.data));
+
+                registrosDoFuncionario.forEach(registro => {
+                    const dataFormatada = new Date(registro.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+                    const linha = [`"${dataFormatada}"`, `"${registro.epi}"`, `"${registro.ca}"`].join(',');
+                    csvContent += linha + '\n';
+                });
+                csvContent += '\n'; // Add a blank line for better separation
             });
-            const encodedUri = encodeURI(csvContent);
+            
+            const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
             const link = document.createElement('a');
             link.setAttribute('href', encodedUri);
             const dataBackup = new Date().toISOString().slice(0, 10);
-            link.setAttribute('download', `backup_controle_epi_${dataBackup}.csv`);
+            link.setAttribute('download', `relatorio_entregas_epi_${dataBackup}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            showNotification('Download do arquivo CSV iniciado.', 'success');
+            showNotification('Relatório CSV gerado com sucesso!', 'success');
         });
 
         // --- Initialization ---
         const initializeApp = () => {
             dataEntregaInput.valueAsDate = new Date();
-            popularListaDeEPIs(); // NEW: Populate the checkbox list
+            popularListaDeEPIs();
             renderizarListaTemporaria();
             renderizarTabelaGeral();
         };
