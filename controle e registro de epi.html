@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Entrega de EPI | Seleção Múltipla</title>
+    
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        /* --- CSS Variables for Easy Theming --- */
+        :root {
+            --primary-color: #006D77;
+            --secondary-color: #83C5BE;
+            --background-color: #F0F4F8;
+            --card-background: #FFFFFF;
+            --text-color: #333D4B;
+            --text-light: #5A6A7F;
+            --border-color: #E0E7EF;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --border-radius: 12px;
+        }
+
+        /* --- General Styles --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* --- Main Container --- */
+        .container {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
+
+        /* --- Header --- */
+        .main-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .main-header i {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+        }
+
+        .main-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        /* --- Card Layout --- */
+        .card {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            padding: 1.5rem 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .card-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        /* --- Form Styles --- */
+        .grid-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        input, select {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            width: 100%;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--secondary-color);
+        }
+        
+        /* --- NEW: EPI Selection List Styles --- */
+        #epi-selection-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1rem;
+        }
+
+        .epi-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .epi-item:focus-within {
+            border-color: var(--primary-color);
+        }
+        
+        .epi-item.selected {
+            background-color: #edf6f9;
+            border-color: var(--secondary-color);
+        }
+
+        .form-group-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-grow: 1;
+        }
+
+        .form-group-checkbox input[type="checkbox"] {
+            width: 1.3em;
+            height: 1.3em;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+        }
+
+        .form-group-checkbox label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-color);
+            user-select: none; /* Prevent text selection on click */
+        }
+
+        .form-group-ca {
+            width: 130px; /* Fixed width for C.A. input */
+        }
+        
+        .ca-input {
+            text-align: center;
+        }
+
+        .ca-input:disabled {
+            background-color: #f1f1f1;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+
+        /* --- Button Styles --- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .btn i {
+            font-size: 1.2rem;
+        }
+
+        .btn-primary { background-color: var(--primary-color); }
+        .btn-primary:hover { background-color: #00565e; transform: translateY(-2px); }
+
+        .btn-success { background-color: var(--success-color); }
+        .btn-success:hover { background-color: #218838; transform: translateY(-2px); }
+
+        .btn-danger { background-color: var(--danger-color); }
+        .btn-danger:hover { background-color: #c82333; transform: translateY(-2px); }
+        
+        .btn-info { background-color: var(--info-color); }
+        .btn-info:hover { background-color: #138496; transform: translateY(-2px); }
+        
+        .btn-full { width: 100%; }
+        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+        .btn-sm i { font-size: 1rem; }
+
+        /* --- Table Styles --- */
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--background-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+        
+        tbody tr:hover {
+            background-color: #f7f9fc;
+        }
+        
+        td {
+            color: var(--text-light);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+        }
+        .empty-state i {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        /* --- Modal and Notification Styles --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--card-background);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-content i {
+            font-size: 3rem;
+            color: var(--danger-color);
+            margin-bottom: 1rem;
+        }
+
+        .modal-content p {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-light);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--text-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .notification.success { background-color: var(--success-color); }
+        .notification.error { background-color: var(--danger-color); }
+        .notification i { font-size: 1.5rem; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="main-header">
+            <i class="ph-shield-check-fill"></i>
+            <h1>Controle de Entrega de EPI</h1>
+        </header>
+
+        <!-- Step 1: Delivery Info -->
+        <div class="card">
+            <div class="card-header">
+                <i class="ph-user-list"></i>
+                <h2>Passo 1: Informações da Entrega</h2>
+            </div>
+            <div class="grid-form">
+                <div class="form-group">
+                    <label for="nome-funcionario">Nome do Funcionário</label>
+                    <input type="text" id="nome-funcionario" required placeholder="Digite o nome completo">
+                </div>
+                <div class="form-group">
+                    <label for="data-entrega">Data da Entrega</label>
+                    <input type="date" id="data-entrega" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Select EPIs (MODIFIED) -->
+        <div class="card">
+            <div class="card-header">
+                <i class="ph-check-square-offset-fill"></i>
+                <h2>Passo 2: Selecionar EPIs e Adicionar à Lista</h2>
+            </div>
+            <form id="add-items-form">
+                <div id="epi-selection-list">
+                    <!-- EPI items will be generated by JavaScript -->
+                </div>
+                <div class="form-group" style="margin-top: 1.5rem;">
+                     <button type="submit" class="btn btn-info btn-full"><i class="ph-plus-circle"></i> Adicionar Selecionados à Lista</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Step 3: Current Delivery List -->
+        <div class="card">
+            <div class="card-header">
+                <i class="ph-list-checks"></i>
+                <h2>Passo 3: Lista de Entrega Atual</h2>
+            </div>
+            <div class="table-wrapper">
+                <table id="lista-entrega-tabela">
+                    <thead>
+                        <tr>
+                            <th>EPI</th>
+                            <th>C.A.</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+             <button id="btn-save-all" class="btn btn-success btn-full" style="margin-top: 1.5rem;">
+                <i class="ph-floppy-disk"></i>
+                Salvar Entregas no Histórico
+            </button>
+        </div>
+
+        <!-- General History -->
+        <div class="card">
+            <div class="card-header" style="justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <i class="ph-archive"></i>
+                    <h2>Histórico Geral de Entregas</h2>
+                </div>
+                <button type="button" id="exportar-csv" class="btn btn-primary">
+                    <i class="ph-file-csv"></i>
+                    Exportar para CSV
+                </button>
+            </div>
+            <div class="table-wrapper">
+                <table id="registros-tabela">
+                    <thead>
+                        <tr>
+                            <th>Funcionário</th>
+                            <th>Nome do EPI</th>
+                            <th>C.A.</th>
+                            <th>Data da Entrega</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="modal-overlay">
+        <div class="modal-content">
+            <i class="ph-warning-circle-fill"></i>
+            <p id="modal-text">Tem certeza que deseja apagar este registro permanentemente?</p>
+            <div class="modal-actions">
+                <button id="modal-btn-cancel" class="btn btn-info">Cancelar</button>
+                <button id="modal-btn-confirm" class="btn btn-danger">Sim, Apagar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification Element -->
+    <div id="notification" class="notification">
+        <i id="notification-icon" class="ph-check-circle-fill"></i>
+        <span id="notification-text">Operação realizada com sucesso!</span>
+    </div>
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Element References ---
+        const nomeFuncionarioInput = document.getElementById('nome-funcionario');
+        const dataEntregaInput = document.getElementById('data-entrega');
+        const addItemsForm = document.getElementById('add-items-form');
+        const epiSelectionList = document.getElementById('epi-selection-list'); // NEW
+        const listaEntregaTabelaBody = document.querySelector('#lista-entrega-tabela tbody');
+        const btnSaveAll = document.getElementById('btn-save-all');
+        const registrosTabelaBody = document.querySelector('#registros-tabela tbody');
+        const exportarBtn = document.getElementById('exportar-csv');
+        
+        // Modal and Notification Elements
+        const confirmModal = document.getElementById('confirm-modal');
+        const modalBtnCancel = document.getElementById('modal-btn-cancel');
+        const modalBtnConfirm = document.getElementById('modal-btn-confirm');
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notification-text');
+        const notificationIcon = document.getElementById('notification-icon');
+
+        // --- Application State ---
+        let listaDeEntrega = [];
+        let registrosGerais = JSON.parse(localStorage.getItem('epiRegistros')) || [];
+        let confirmationCallback = null;
+
+        // --- NEW: List of available EPIs ---
+        const availableEpis = [
+            "Luva de Pano", "Luva PVC", "Máscara PFF2", "Avental",
+            "Óculos Escuro", "Óculos Transparente", "Balaclava", "Máscara de Filtro",
+            "Protetor Auricular", "Capacete", "Bota de Segurança", "Cinto de Segurança"
+        ];
+
+        // --- Utility Functions (Notifications and Modals) ---
+        const showNotification = (message, type = 'success') => {
+            notificationText.textContent = message;
+            notification.className = `notification ${type} show`;
+            notificationIcon.className = type === 'success' ? 'ph-check-circle-fill' : 'ph-x-circle-fill';
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        };
+
+        const showConfirmModal = (callback) => {
+            confirmationCallback = callback;
+            confirmModal.classList.add('active');
+        };
+
+        const hideConfirmModal = () => {
+            confirmModal.classList.remove('active');
+            confirmationCallback = null;
+        };
+        
+        modalBtnConfirm.addEventListener('click', () => {
+            if (confirmationCallback) {
+                confirmationCallback();
+            }
+            hideConfirmModal();
+        });
+        
+        modalBtnCancel.addEventListener('click', hideConfirmModal);
+        confirmModal.addEventListener('click', (e) => {
+            if (e.target === confirmModal) {
+                hideConfirmModal();
+            }
+        });
+
+
+        // --- Sync and Render Functions ---
+        const salvarRegistrosGerais = () => {
+            localStorage.setItem('epiRegistros', JSON.stringify(registrosGerais));
+        };
+        
+        const renderizarListaTemporaria = () => {
+            listaEntregaTabelaBody.innerHTML = '';
+            if (listaDeEntrega.length === 0) {
+                 listaEntregaTabelaBody.innerHTML = '<tr><td colspan="3" class="empty-state"><i class="ph-list-dashes"></i> Nenhum EPI adicionado.</td></tr>';
+                 return;
+            }
+            listaDeEntrega.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.epi}</td>
+                    <td>${item.ca}</td>
+                    <td><button class="btn btn-danger btn-sm delete-temp" data-index="${index}"><i class="ph-trash"></i></button></td>
+                `;
+                listaEntregaTabelaBody.appendChild(tr);
+            });
+        };
+
+        const renderizarTabelaGeral = () => {
+            registrosTabelaBody.innerHTML = '';
+            if (registrosGerais.length === 0) {
+                registrosTabelaBody.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="ph-archive-box"></i> Histórico vazio.</td></tr>';
+                return;
+            }
+            const registrosOrdenados = [...registrosGerais].sort((a, b) => new Date(b.data) - new Date(a.data));
+            registrosOrdenados.forEach((registro) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${registro.funcionario}</td>
+                    <td>${registro.epi}</td>
+                    <td>${registro.ca}</td>
+                    <td>${new Date(registro.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</td>
+                    <td><button class="btn btn-danger btn-sm delete-perm" data-id="${registro.id}"><i class="ph-trash-simple-fill"></i> Apagar</button></td>
+                `;
+                registrosTabelaBody.appendChild(tr);
+            });
+        };
+        
+        // --- NEW: Function to create the EPI selection list ---
+        const popularListaDeEPIs = () => {
+            epiSelectionList.innerHTML = ''; // Clear previous items
+            availableEpis.forEach(epi => {
+                const epiId = `epi-${epi.replace(/\s+/g, '-')}`;
+                const epiItem = document.createElement('div');
+                epiItem.classList.add('epi-item');
+                epiItem.innerHTML = `
+                    <div class="form-group-checkbox">
+                        <input type="checkbox" id="${epiId}" name="epi-checkbox" value="${epi}">
+                        <label for="${epiId}">${epi}</label>
+                    </div>
+                    <div class="form-group-ca">
+                        <input type="number" class="ca-input" placeholder="Nº do C.A." disabled>
+                    </div>
+                `;
+                epiSelectionList.appendChild(epiItem);
+            });
+        };
+
+        // --- Event Logic ---
+
+        // NEW: Enable/disable C.A. input when checkbox is toggled
+        epiSelectionList.addEventListener('change', (e) => {
+            if (e.target.matches('input[name="epi-checkbox"]')) {
+                const epiItem = e.target.closest('.epi-item');
+                const caInput = epiItem.querySelector('.ca-input');
+                caInput.disabled = !e.target.checked;
+                epiItem.classList.toggle('selected', e.target.checked);
+                
+                if (e.target.checked) {
+                    caInput.focus();
+                } else {
+                    caInput.value = '';
+                }
+            }
+        });
+
+        // MODIFIED: Add selected items to temporary list
+        addItemsForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const selectedCheckboxes = epiSelectionList.querySelectorAll('input[name="epi-checkbox"]:checked');
+            let itemsAddedCount = 0;
+            let hasError = false;
+
+            selectedCheckboxes.forEach(checkbox => {
+                const epiItemDiv = checkbox.closest('.epi-item');
+                const caInput = epiItemDiv.querySelector('.ca-input');
+                const epi = checkbox.value;
+                const ca = caInput.value;
+
+                if (ca) {
+                    listaDeEntrega.push({ epi, ca });
+                    itemsAddedCount++;
+                    // Reset the item
+                    checkbox.checked = false;
+                    caInput.value = '';
+                    caInput.disabled = true;
+                    epiItemDiv.classList.remove('selected');
+                } else {
+                    showNotification(`Preencha o C.A. para o EPI: ${epi}`, 'error');
+                    caInput.focus();
+                    hasError = true;
+                }
+            });
+
+            if (itemsAddedCount > 0) {
+                renderizarListaTemporaria();
+                showNotification(`${itemsAddedCount} ${itemsAddedCount > 1 ? 'EPIs adicionados' : 'EPI adicionado'} à lista!`, 'success');
+            } else if (!hasError) {
+                showNotification('Nenhum EPI foi selecionado.', 'error');
+            }
+        });
+
+        // Remove item from temporary list
+        listaEntregaTabelaBody.addEventListener('click', (e) => {
+            const deleteBtn = e.target.closest('.delete-temp');
+            if (deleteBtn) {
+                const index = deleteBtn.getAttribute('data-index');
+                listaDeEntrega.splice(index, 1);
+                renderizarListaTemporaria();
+                showNotification('Item removido da lista.', 'info');
+            }
+        });
+
+        // Save all from list to general history
+        btnSaveAll.addEventListener('click', () => {
+            const funcionario = nomeFuncionarioInput.value.trim();
+            const data = dataEntregaInput.value;
+
+            if (!funcionario || !data) {
+                showNotification('Preencha o Nome e a Data antes de salvar.', 'error');
+                return;
+            }
+            if (listaDeEntrega.length === 0) {
+                showNotification('A lista de entrega está vazia.', 'error');
+                return;
+            }
+
+            const totalItems = listaDeEntrega.length;
+            listaDeEntrega.forEach(item => {
+                const novoRegistro = {
+                    id: Date.now() + Math.random(),
+                    funcionario: funcionario,
+                    data: data,
+                    epi: item.epi,
+                    ca: item.ca
+                };
+                registrosGerais.push(novoRegistro);
+            });
+
+            salvarRegistrosGerais();
+            renderizarTabelaGeral();
+            
+            listaDeEntrega = [];
+            renderizarListaTemporaria();
+            nomeFuncionarioInput.value = '';
+            showNotification(`${totalItems} ${totalItems > 1 ? 'itens salvos' : 'item salvo'} com sucesso!`, 'success');
+        });
+
+        // Delete a record from general history
+        registrosTabelaBody.addEventListener('click', (e) => {
+            const deleteBtn = e.target.closest('.delete-perm');
+            if (deleteBtn) {
+                showConfirmModal(() => {
+                    const idParaApagar = parseFloat(deleteBtn.getAttribute('data-id'));
+                    registrosGerais = registrosGerais.filter(r => r.id !== idParaApagar);
+                    salvarRegistrosGerais();
+                    renderizarTabelaGeral();
+                    showNotification('Registro apagado permanentemente.', 'success');
+                });
+            }
+        });
+
+        // Export History to CSV
+        exportarBtn.addEventListener('click', () => {
+             if (registrosGerais.length === 0) {
+                showNotification('Não há registros para exportar.', 'error');
+                return;
+            }
+            const headers = ['Nome do Funcionario', 'Nome do EPI', 'Numero do C.A.', 'Data da Entrega'];
+            let csvContent = "data:text/csv;charset=utf-8," + headers.join(',') + '\n';
+            const registrosOrdenados = [...registrosGerais].sort((a, b) => new Date(b.data) - new Date(a.data));
+            registrosOrdenados.forEach(registro => {
+                const dataFormatada = new Date(registro.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+                const linha = [`"${registro.funcionario}"`, `"${registro.epi}"`, `"${registro.ca}"`, `"${dataFormatada}"`].join(',');
+                csvContent += linha + '\n';
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            const dataBackup = new Date().toISOString().slice(0, 10);
+            link.setAttribute('download', `backup_controle_epi_${dataBackup}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showNotification('Download do arquivo CSV iniciado.', 'success');
+        });
+
+        // --- Initialization ---
+        const initializeApp = () => {
+            dataEntregaInput.valueAsDate = new Date();
+            popularListaDeEPIs(); // NEW: Populate the checkbox list
+            renderizarListaTemporaria();
+            renderizarTabelaGeral();
+        };
+
+        initializeApp();
+    });
+    </script>
+</body>
+</html>
