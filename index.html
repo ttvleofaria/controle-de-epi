@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Entrega de EPI | Seleção Múltipla</title>
+    <title>Controle de Entrega de EPI | Avançado</title>
     
     <!-- Google Fonts: Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,6 +26,7 @@
             --success-color: #28a745;
             --danger-color: #dc3545;
             --info-color: #17a2b8;
+            --warning-color: #ffc107;
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             --border-radius: 12px;
         }
@@ -114,6 +115,7 @@
         .form-group {
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
         label {
@@ -156,10 +158,6 @@
             transition: background-color 0.2s, border-color 0.2s;
         }
 
-        .epi-item:focus-within {
-            border-color: var(--primary-color);
-        }
-        
         .epi-item.selected {
             background-color: #edf6f9;
             border-color: var(--secondary-color);
@@ -184,11 +182,11 @@
             cursor: pointer;
             font-weight: 500;
             color: var(--text-color);
-            user-select: none; /* Prevent text selection on click */
+            user-select: none;
         }
 
         .form-group-ca {
-            width: 130px; /* Fixed width for C.A. input */
+            width: 130px;
         }
         
         .ca-input {
@@ -225,16 +223,19 @@
         }
 
         .btn-primary { background-color: var(--primary-color); }
-        .btn-primary:hover { background-color: #00565e; transform: translateY(-2px); }
+        .btn-primary:hover { background-color: #00565e; }
 
         .btn-success { background-color: var(--success-color); }
-        .btn-success:hover { background-color: #218838; transform: translateY(-2px); }
+        .btn-success:hover { background-color: #218838; }
 
         .btn-danger { background-color: var(--danger-color); }
-        .btn-danger:hover { background-color: #c82333; transform: translateY(-2px); }
+        .btn-danger:hover { background-color: #c82333; }
         
         .btn-info { background-color: var(--info-color); }
-        .btn-info:hover { background-color: #138496; transform: translateY(-2px); }
+        .btn-info:hover { background-color: #138496; }
+
+        .btn-warning { background-color: var(--warning-color); color: #212529;}
+        .btn-warning:hover { background-color: #e0a800; }
         
         .btn-full { width: 100%; }
         .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
@@ -265,16 +266,17 @@
             letter-spacing: 0.5px;
         }
         
-        tbody tr {
-            transition: background-color 0.2s ease;
-        }
-        
         tbody tr:hover {
             background-color: #f7f9fc;
         }
         
         td {
             color: var(--text-light);
+        }
+        
+        .actions-cell {
+            display: flex;
+            gap: 0.5rem;
         }
 
         .empty-state {
@@ -315,9 +317,8 @@
             padding: 2rem;
             border-radius: var(--border-radius);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            max-width: 400px;
             width: 90%;
+            max-width: 500px;
             transform: scale(0.9);
             transition: transform 0.3s ease;
         }
@@ -325,8 +326,31 @@
         .modal-overlay.active .modal-content {
             transform: scale(1);
         }
+        
+        .modal-header {
+            text-align: left;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .modal-header i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
 
-        .modal-content i {
+        .modal-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .modal-content.confirm-modal {
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .confirm-modal i.modal-icon {
             font-size: 3rem;
             color: var(--danger-color);
             margin-bottom: 1rem;
@@ -340,8 +364,13 @@
 
         .modal-actions {
             display: flex;
-            justify-content: center;
+            justify-content: flex-end;
             gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .confirm-modal .modal-actions {
+            justify-content: center;
         }
 
         .notification {
@@ -388,7 +417,8 @@
             <div class="grid-form">
                 <div class="form-group">
                     <label for="nome-funcionario">Nome do Funcionário</label>
-                    <input type="text" id="nome-funcionario" required placeholder="Digite o nome completo">
+                    <input type="text" id="nome-funcionario" list="nomes-funcionarios-list" required placeholder="Digite o nome completo">
+                    <datalist id="nomes-funcionarios-list"></datalist>
                 </div>
                 <div class="form-group">
                     <label for="data-entrega">Data da Entrega</label>
@@ -439,7 +469,7 @@
 
         <!-- General History -->
         <div class="card">
-            <div class="card-header" style="justify-content: space-between;">
+            <div class="card-header" style="justify-content: space-between; flex-wrap: wrap;">
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
                     <i class="ph-archive"></i>
                     <h2>Histórico Geral de Entregas</h2>
@@ -449,6 +479,10 @@
                     Exportar Relatório CSV
                 </button>
             </div>
+            <div class="form-group">
+                <label for="filtro-historico">Buscar no Histórico</label>
+                <input type="search" id="filtro-historico" placeholder="Filtrar por nome, EPI, C.A. ou data...">
+            </div>
             <div class="table-wrapper">
                 <table id="registros-tabela">
                     <thead>
@@ -457,7 +491,7 @@
                             <th>Nome do EPI</th>
                             <th>C.A.</th>
                             <th>Data da Entrega</th>
-                            <th>Ação</th>
+                            <th style="width: 120px;">Ações</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -468,13 +502,47 @@
 
     <!-- Confirmation Modal -->
     <div id="confirm-modal" class="modal-overlay">
-        <div class="modal-content">
-            <i class="ph-warning-circle-fill"></i>
+        <div class="modal-content confirm-modal">
+            <i class="ph-warning-circle-fill modal-icon"></i>
             <p id="modal-text">Tem certeza que deseja apagar este registro permanentemente?</p>
             <div class="modal-actions">
                 <button id="modal-btn-cancel" class="btn btn-info">Cancelar</button>
                 <button id="modal-btn-confirm" class="btn btn-danger">Sim, Apagar</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="ph-pencil-simple-line-fill"></i>
+                <h3>Editar Registro de Entrega</h3>
+            </div>
+            <form id="edit-form">
+                <div class="grid-form">
+                    <div class="form-group">
+                        <label for="edit-nome-funcionario">Nome do Funcionário</label>
+                        <input type="text" id="edit-nome-funcionario" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-data-entrega">Data da Entrega</label>
+                        <input type="date" id="edit-data-entrega" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-nome-epi">Nome do EPI</label>
+                        <input type="text" id="edit-nome-epi" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-ca-epi">Número do C.A.</label>
+                        <input type="number" id="edit-ca-epi" required>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="edit-modal-btn-cancel" class="btn btn-info">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Salvar Alterações</button>
+                </div>
+            </form>
         </div>
     </div>
     
@@ -489,18 +557,23 @@
     document.addEventListener('DOMContentLoaded', () => {
         // --- Element References ---
         const nomeFuncionarioInput = document.getElementById('nome-funcionario');
+        const nomesFuncionariosList = document.getElementById('nomes-funcionarios-list');
         const dataEntregaInput = document.getElementById('data-entrega');
         const addItemsForm = document.getElementById('add-items-form');
         const epiSelectionList = document.getElementById('epi-selection-list');
         const listaEntregaTabelaBody = document.querySelector('#lista-entrega-tabela tbody');
         const btnSaveAll = document.getElementById('btn-save-all');
         const registrosTabelaBody = document.querySelector('#registros-tabela tbody');
+        const filtroHistoricoInput = document.getElementById('filtro-historico');
         const exportarBtn = document.getElementById('exportar-csv');
         
-        // Modal and Notification Elements
+        // Modals and Notification Elements
         const confirmModal = document.getElementById('confirm-modal');
         const modalBtnCancel = document.getElementById('modal-btn-cancel');
         const modalBtnConfirm = document.getElementById('modal-btn-confirm');
+        const editModal = document.getElementById('edit-modal');
+        const editForm = document.getElementById('edit-form');
+        const editModalBtnCancel = document.getElementById('edit-modal-btn-cancel');
         const notification = document.getElementById('notification');
         const notificationText = document.getElementById('notification-text');
         const notificationIcon = document.getElementById('notification-icon');
@@ -509,15 +582,16 @@
         let listaDeEntrega = [];
         let registrosGerais = JSON.parse(localStorage.getItem('epiRegistros')) || [];
         let confirmationCallback = null;
+        let recordIdToEdit = null;
 
         // --- List of available EPIs (SORTED) ---
         const availableEpis = [
             "Luva de Pano", "Luva PVC", "Máscara PFF2", "Avental",
             "Óculos Escuro", "Óculos Transparente", "Balaclava", "Máscara de Filtro",
             "Protetor Auricular", "Capacete", "Bota de Segurança", "Cinto de Segurança"
-        ].sort(); // <-- MODIFIED: List is now sorted alphabetically
+        ].sort();
 
-        // --- Utility Functions (Notifications and Modals) ---
+        // --- Utility Functions ---
         const showNotification = (message, type = 'success') => {
             notificationText.textContent = message;
             notification.className = `notification ${type} show`;
@@ -537,27 +611,37 @@
             confirmModal.classList.remove('active');
             confirmationCallback = null;
         };
-        
-        modalBtnConfirm.addEventListener('click', () => {
-            if (confirmationCallback) {
-                confirmationCallback();
-            }
-            hideConfirmModal();
-        });
-        
-        modalBtnCancel.addEventListener('click', hideConfirmModal);
-        confirmModal.addEventListener('click', (e) => {
-            if (e.target === confirmModal) {
-                hideConfirmModal();
-            }
-        });
 
+        const showEditModal = (record) => {
+            recordIdToEdit = record.id;
+            document.getElementById('edit-nome-funcionario').value = record.funcionario;
+            document.getElementById('edit-data-entrega').value = record.data;
+            document.getElementById('edit-nome-epi').value = record.epi;
+            document.getElementById('edit-ca-epi').value = record.ca;
+            editModal.classList.add('active');
+        };
+
+        const hideEditModal = () => {
+            editModal.classList.remove('active');
+            recordIdToEdit = null;
+            editForm.reset();
+        };
 
         // --- Sync and Render Functions ---
         const salvarRegistrosGerais = () => {
             localStorage.setItem('epiRegistros', JSON.stringify(registrosGerais));
         };
         
+        const popularAutocompleteNomes = () => {
+            const nomes = [...new Set(registrosGerais.map(r => r.funcionario))];
+            nomesFuncionariosList.innerHTML = '';
+            nomes.forEach(nome => {
+                const option = document.createElement('option');
+                option.value = nome;
+                nomesFuncionariosList.appendChild(option);
+            });
+        };
+
         const renderizarListaTemporaria = () => {
             listaEntregaTabelaBody.innerHTML = '';
             if (listaDeEntrega.length === 0) {
@@ -575,29 +659,42 @@
             });
         };
 
-        const renderizarTabelaGeral = () => {
+        const renderizarTabelaGeral = (filtro = '') => {
             registrosTabelaBody.innerHTML = '';
-            if (registrosGerais.length === 0) {
-                registrosTabelaBody.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="ph-archive-box"></i> Histórico vazio.</td></tr>';
+            
+            const filtroLowerCase = filtro.toLowerCase();
+            const registrosFiltrados = registrosGerais.filter(r => {
+                const dataFormatada = new Date(r.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+                return r.funcionario.toLowerCase().includes(filtroLowerCase) ||
+                       r.epi.toLowerCase().includes(filtroLowerCase) ||
+                       r.ca.toLowerCase().includes(filtroLowerCase) ||
+                       dataFormatada.includes(filtroLowerCase);
+            });
+
+            if (registrosFiltrados.length === 0) {
+                registrosTabelaBody.innerHTML = `<tr><td colspan="5" class="empty-state"><i class="ph-file-magnifying-glass"></i> ${filtro ? 'Nenhum resultado encontrado.' : 'Histórico vazio.'}</td></tr>`;
                 return;
             }
-            const registrosOrdenados = [...registrosGerais].sort((a, b) => new Date(b.data) - new Date(a.data));
+            const registrosOrdenados = [...registrosFiltrados].sort((a, b) => new Date(b.data) - new Date(a.data));
             registrosOrdenados.forEach((registro) => {
                 const tr = document.createElement('tr');
+                tr.dataset.id = registro.id;
                 tr.innerHTML = `
                     <td>${registro.funcionario}</td>
                     <td>${registro.epi}</td>
                     <td>${registro.ca}</td>
                     <td>${new Date(registro.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</td>
-                    <td><button class="btn btn-danger btn-sm delete-perm" data-id="${registro.id}"><i class="ph-trash-simple-fill"></i> Apagar</button></td>
+                    <td class="actions-cell">
+                        <button class="btn btn-warning btn-sm edit-perm"><i class="ph-pencil-simple"></i></button>
+                        <button class="btn btn-danger btn-sm delete-perm"><i class="ph-trash"></i></button>
+                    </td>
                 `;
                 registrosTabelaBody.appendChild(tr);
             });
         };
         
-        // --- Function to create the EPI selection list ---
         const popularListaDeEPIs = () => {
-            epiSelectionList.innerHTML = ''; // Clear previous items
+            epiSelectionList.innerHTML = '';
             availableEpis.forEach(epi => {
                 const epiId = `epi-${epi.replace(/\s+/g, '-')}`;
                 const epiItem = document.createElement('div');
@@ -617,20 +714,21 @@
 
         // --- Event Logic ---
 
-        // Enable/disable C.A. input when checkbox is toggled
-        epiSelectionList.addEventListener('change', (e) => {
-            if (e.target.matches('input[name="epi-checkbox"]')) {
-                const epiItem = e.target.closest('.epi-item');
-                const caInput = epiItem.querySelector('.ca-input');
-                caInput.disabled = !e.target.checked;
-                epiItem.classList.toggle('selected', e.target.checked);
-                
-                if (e.target.checked) {
-                    caInput.focus();
-                } else {
-                    caInput.value = '';
+        // Modal Handlers
+        modalBtnConfirm.addEventListener('click', () => {
+            if (confirmationCallback) confirmationCallback();
+            hideConfirmModal();
+        });
+        modalBtnCancel.addEventListener('click', hideConfirmModal);
+        editModalBtnCancel.addEventListener('click', hideEditModal);
+        
+        [confirmModal, editModal].forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    if(modal === confirmModal) hideConfirmModal();
+                    if(modal === editModal) hideEditModal();
                 }
-            }
+            });
         });
 
         // Add selected items to temporary list
@@ -649,7 +747,6 @@
                 if (ca) {
                     listaDeEntrega.push({ epi, ca });
                     itemsAddedCount++;
-                    // Reset the item
                     checkbox.checked = false;
                     caInput.value = '';
                     caInput.disabled = true;
@@ -707,67 +804,89 @@
             });
 
             salvarRegistrosGerais();
-            renderizarTabelaGeral();
-            
+            renderizarTabelaGeral(filtroHistoricoInput.value);
+            popularAutocompleteNomes();
             listaDeEntrega = [];
             renderizarListaTemporaria();
             nomeFuncionarioInput.value = '';
             showNotification(`${totalItems} ${totalItems > 1 ? 'itens salvos' : 'item salvo'} com sucesso!`, 'success');
         });
 
-        // Delete a record from general history
+        // Edit or Delete a record from general history
         registrosTabelaBody.addEventListener('click', (e) => {
+            const editBtn = e.target.closest('.edit-perm');
             const deleteBtn = e.target.closest('.delete-perm');
+
+            if (editBtn) {
+                const recordId = parseFloat(editBtn.closest('tr').dataset.id);
+                const record = registrosGerais.find(r => r.id === recordId);
+                if (record) showEditModal(record);
+            }
+
             if (deleteBtn) {
                 showConfirmModal(() => {
-                    const idParaApagar = parseFloat(deleteBtn.getAttribute('data-id'));
+                    const idParaApagar = parseFloat(deleteBtn.closest('tr').dataset.id);
                     registrosGerais = registrosGerais.filter(r => r.id !== idParaApagar);
                     salvarRegistrosGerais();
-                    renderizarTabelaGeral();
+                    renderizarTabelaGeral(filtroHistoricoInput.value);
+                    popularAutocompleteNomes();
                     showNotification('Registro apagado permanentemente.', 'success');
                 });
             }
         });
+        
+        // Handle Edit Form Submission
+        editForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const index = registrosGerais.findIndex(r => r.id === recordIdToEdit);
+            if (index > -1) {
+                registrosGerais[index] = {
+                    id: recordIdToEdit,
+                    funcionario: document.getElementById('edit-nome-funcionario').value.trim(),
+                    data: document.getElementById('edit-data-entrega').value,
+                    epi: document.getElementById('edit-nome-epi').value.trim(),
+                    ca: document.getElementById('edit-ca-epi').value.trim()
+                };
+                salvarRegistrosGerais();
+                renderizarTabelaGeral(filtroHistoricoInput.value);
+                popularAutocompleteNomes();
+                hideEditModal();
+                showNotification('Registro atualizado com sucesso!', 'success');
+            }
+        });
 
-        // --- MODIFIED: Export History to a more organized CSV Report ---
+        // Filter History
+        filtroHistoricoInput.addEventListener('input', (e) => {
+            renderizarTabelaGeral(e.target.value);
+        });
+
+        // Export History to CSV
         exportarBtn.addEventListener('click', () => {
              if (registrosGerais.length === 0) {
                 showNotification('Não há registros para exportar.', 'error');
                 return;
             }
-
             const dataGeracao = new Date().toLocaleDateString('pt-BR');
             let csvContent = `"Relatório de Entrega de EPIs"\n`;
             csvContent += `"Gerado em: ${dataGeracao}"\n\n`;
-
-            // Group records by employee
             const groupedByFuncionario = registrosGerais.reduce((acc, registro) => {
                 const funcionario = registro.funcionario;
-                if (!acc[funcionario]) {
-                    acc[funcionario] = [];
-                }
+                if (!acc[funcionario]) acc[funcionario] = [];
                 acc[funcionario].push(registro);
                 return acc;
             }, {});
-
-            // Sort employees by name alphabetically
             const funcionariosOrdenados = Object.keys(groupedByFuncionario).sort((a, b) => a.localeCompare(b));
-
             funcionariosOrdenados.forEach(funcionario => {
                 csvContent += `"Funcionário: ${funcionario}"\n`;
                 csvContent += `"Data da Entrega","EPI","C.A."\n`;
-
-                // Sort records for the current employee by date (most recent first)
                 const registrosDoFuncionario = groupedByFuncionario[funcionario].sort((a, b) => new Date(b.data) - new Date(a.data));
-
                 registrosDoFuncionario.forEach(registro => {
                     const dataFormatada = new Date(registro.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
                     const linha = [`"${dataFormatada}"`, `"${registro.epi}"`, `"${registro.ca}"`].join(',');
                     csvContent += linha + '\n';
                 });
-                csvContent += '\n'; // Add a blank line for better separation
+                csvContent += '\n';
             });
-            
             const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
             const link = document.createElement('a');
             link.setAttribute('href', encodedUri);
@@ -785,6 +904,7 @@
             popularListaDeEPIs();
             renderizarListaTemporaria();
             renderizarTabelaGeral();
+            popularAutocompleteNomes();
         };
 
         initializeApp();
